@@ -1,0 +1,323 @@
+Calculate CLV using different approaches and
+#1. Simple CLV Calculation
+avg_purchase_value <- 50 # Average revenue per purchase
+purchase_frequency <- 10 # Purchases per year
+customer_lifespan <- 5 # Years the customer remains active
+# Calculate CLV
+CLV_simple <- avg_purchase_value * purchase_frequency * customer_lifespan
+CLV_simple
+[1] 2500
+
+#2. Discounted CLV (Present Value Approach)
+revenue <- c(100, 110, 120, 130, 140) # Revenue for 5 years
+cost <- c(20, 25, 30, 35, 40) # Cost for 5 years
+discount_rate <- 0.1 # Discount rate
+# Calculate discounted CLV
+CLV_discounted <- sum((revenue - cost) / (1 + discount_rate)^(1:length(revenue)))
+CLV_discounted
+
+#3.Cohort-Based CLV
+# Example cohort data
+cohorts <- data.frame(cohort = c("2020-Q1", "2020-Q2", "2020-Q3"), revenue = c(5000, 
+4000, 3000), cost = c(2000, 1500, 1000), customers = c(100, 80, 60))
+# Calculate CLV per customer for each cohort
+cohorts$CLV <- (cohorts$revenue - cohorts$cost) / cohorts$customers
+cohorts
+
+
+
+#ML
+
+# Install and load required packages
+install.packages("caret")
+set.seed(123)
+library(caret)
+
+# Generate sample data
+data <- data.frame(
+  avg_purchase = runif(100, 50, 150),
+  frequency = runif(100, 1, 10),
+  lifespan = runif(100, 1, 5),
+  CLV = runif(100, 100, 1000)
+)
+
+# Split data into training and testing sets
+trainIndex <- createDataPartition(data$CLV, p = 0.8, list = FALSE)
+train <- data[trainIndex, ]
+test <- data[-trainIndex, ]
+
+# Train a linear regression model
+model <- train(
+  CLV ~ avg_purchase + frequency + lifespan,
+  data = train,
+  method = "lm"
+)
+
+# Display model summary
+print(summary(model$finalModel))
+
+# Make predictions on the test dataset
+predictions <- predict(model, newdata = test)
+
+# Evaluate the model
+mse <- mean((test$CLV - predictions)^2)
+cat("Mean Squared Error (MSE):", mse, "\n")
+
+r_squared <- cor(test$CLV, predictions)^2
+cat("R-squared:", r_squared, "\n")
+
+
+
+
+
+#LINEAR REGRESSION
+
+
+# Load the mtcars dataset
+data("mtcars")
+
+# Set a seed for reproducibility
+set.seed(123)
+
+# Split the data into training (80%) and testing (20%)
+train_indices <- sample(seq_len(nrow(mtcars)), size = 0.8 * nrow(mtcars))
+train <- mtcars[train_indices, ]
+test <- mtcars[-train_indices, ]
+
+# Train a linear regression model
+linear_model <- lm(mpg ~ hp + wt + cyl, data = train)
+
+# Summarize the model
+cat("Model Summary:\n")
+print(summary(linear_model))
+
+# Make predictions on the test dataset
+predictions <- predict(linear_model, newdata = test)
+
+# Evaluate the accuracy and reliability
+mse <- mean((test$mpg - predictions)^2)  # Mean Squared Error
+rmse <- sqrt(mse)  # Root Mean Squared Error
+r_squared <- summary(linear_model)$r.squared  # R-squared on training data
+adj_r_squared <- summary(linear_model)$adj.r.squared  # Adjusted R-squared
+
+# Calculate R-squared on test data
+test_r_squared <- cor(test$mpg, predictions)^2
+
+# Display evaluation metrics
+cat("\nEvaluation Metrics:\n")
+cat("Mean Squared Error (MSE):", mse, "\n")
+cat("Root Mean Squared Error (RMSE):", rmse, "\n")
+cat("R-squared on Training Data:", r_squared, "\n")
+cat("Adjusted R-squared on Training Data:", adj_r_squared, "\n")
+cat("R-squared on Test Data:", test_r_squared, "\n")
+
+
+
+
+LOGISTIC REGRESSION
+
+# Load the dataset
+data("mtcars")
+
+# Step 1: Convert 'mpg' into a binary target (High vs Low CLV proxy)
+# High CLV: mpg > 20 -> 1, Low CLV: mpg <= 20 -> 0
+mtcars$clv_category <- ifelse(mtcars$mpg > 20, 1, 0)
+
+# Step 2: Split data into training (80%) and testing (20%)
+set.seed(123)  # For reproducibility
+train_indices <- sample(seq_len(nrow(mtcars)), size = 0.8 * nrow(mtcars))
+train <- mtcars[train_indices, ]
+test <- mtcars[-train_indices, ]
+
+# Step 3: Train a logistic regression model
+logistic_model <- glm(clv_category ~ hp + wt + cyl, data = train, family = binomial)
+
+# Check for warnings and convergence issues
+if (!logistic_model$converged) {
+  cat("Warning: The logistic regression model did not converge.\n")
+}
+
+# Step 4: Summarize the model
+cat("Model Summary:\n")
+print(summary(logistic_model))
+
+# Step 5: Make predictions on the test data
+test$predicted_probs <- predict(logistic_model, newdata = test, type = "response")
+test$predicted_class <- ifelse(test$predicted_probs > 0.5, 1, 0)
+
+# Step 6: Evaluate the model
+# Confusion Matrix
+confusion_matrix <- table(
+  Actual = test$clv_category,
+  Predicted = test$predicted_class
+)
+cat("\nConfusion Matrix:\n")
+print(confusion_matrix)
+
+# Accuracy
+accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+cat("\nAccuracy:", accuracy, "\n")
+
+# Precision, Recall, F1-score
+precision <- confusion_matrix[2, 2] / sum(confusion_matrix[, 2])  # TP / (TP + FP)
+recall <- confusion_matrix[2, 2] / sum(confusion_matrix[2, ])    # TP / (TP + FN)
+f1_score <- 2 * (precision * recall) / (precision + recall)
+
+cat("\nPrecision:", precision, "\n")
+cat("Recall:", recall, "\n")
+cat("F1-Score:", f1_score, "\n")
+
+
+INTERPRETATION : 
+1. Coefficients (Estimates):
+ Intercept (40.46149):
+The predicted value of mpg when hp, wt, and cyl are all zero. This value is purely 
+theoretical since these conditions may not exist in reality for cars.
+ hp (-0.01376):
+For every unit increase in horsepower, the mpg decreases by approximately 0.0138 
+units, holding other predictors (wt and cyl) constant. However, the p-value for hp 
+(0.29695) is greater than 0.05, suggesting this predictor is not statistically significant
+in the model.
+ wt (-3.04332):
+For every unit increase in weight (in 1000 lbs), the mpg decreases by approximately 
+3.0433 units, holding hp and cyl constant. This predictor is statistically significant, 
+with a p-value of 0.00168 (< 0.01).
+
+ cyl (-1.38642):
+Each additional cylinder decreases the mpg by approximately 1.3864 units, holding 
+hp and wt constant. This predictor is statistically significant, with a p-value of 
+0.03781 (< 0.05).
+2. Significance (Pr(>|t|)):
+ hp (0.29695): Not significant. The predictor hp does not contribute significantly to 
+predicting mpg in this model.
+ wt (0.00168): Highly significant (p < 0.01).
+ cyl (0.03781): Moderately significant (p < 0.05).
+The significance codes indicate the strength of evidence against the null hypothesis that the 
+coefficient is zero.
+
+
+Model Fit Metrics:
+ Residual Standard Error (2.541):
+On average, the residuals (errors) deviate by 2.541 units from the regression line.
+ Multiple R-squared (0.8633):
+The model explains 86.33% of the variance in mpg. This is a strong fit.
+ Adjusted R-squared (0.8438):
+After accounting for the number of predictors, the model explains 84.38% of the 
+variance in mpg. This indicates that the predictors provide a good explanation of the 
+dependent variable, even after adjusting for model complexity.
+ F-statistic (44.2, p-value = 2.986e-09):
+The overall model is statistically significant, suggesting that the predictors 
+collectively explain a significant amount of variance in mpg.
+
+
+4. Model Evaluation Metrics on the Test Set:
+ MAE (2.2306):
+On average, the model's predictions differ from the actual values by approximately 
+2.23 mpg units.
+ RMSE (2.6313):
+The root mean squared error is slightly higher than the MAE, at 2.63 mpg units. This 
+metric penalizes larger errors more heavily than MAE.
+ R-squared (0.4152):
+On the test set, the model explains only 41.52% of the variability in mpg. This 
+indicates that the model's predictive performance on unseen data is much lower 
+compared to its fit on the training data, suggesting potential overfitting.
+
+
+#6.Logistic Regression: Predicting CLV as a Continuous Variable and accuracy and
+reliability of CLV prediction
+Error: unexpected symbol in "reliability of"
+# Load dataset
+data("mtcars")
+# Step 1: Convert 'mpg' into a binary target (High vs Low CLV proxy)
+# High CLV: mpg 20 -> 1, Low CLV: mpg <= 20 -> 0
+mtcars$clv_category <- ifelse(mtcars$mpg 20, 1, 0)
+# Step 2: Split data into training (80%) and testing (20%)
+> set.seed(123) # For reproducibility
+> train_indices <- sample(seq_len(nrow(mtcars)), size = 0.8 * nrow(mtcars))
+train <- mtcars[train_indices, ]
+test <- mtcars[-train_indices, ]
+# Step 3: Train a logistic regression model
+logistic_model <- glm(clv_category ~ hp + wt + cyl, data = train, family = binomial)
+Warning messages:
+1: glm.fit: algorithm did not converge 
+2: glm.fit: fitted probabilities numerically 0 or 1 occurred 
+# Step 4: Summarize the model
+summary(logistic_model)
+
+Number of Fisher Scoring iterations: 25
+# Step 5: Predict probabilities on the test set
+predicted_probabilities <- predict(logistic_model, newdata = test, type = "response")
+# Step 6: Classify based on threshold (0.5)
+predicted_classes <- ifelse(predicted_probabilities 0.5, 1, 0)
+# Step 7: Evaluate model performance
+# Confusion Matrix
+actual <- test$clv_category
+confusion_matrix <- table(Predicted = predicted_classes, Actual = actual)
+print("Confusion Matrix:")
+[1] "Confusion Matrix:"
+print(confusion_matrix)
+
+> # Accuracy
+accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+# Precision (Positive Predictive Value)
+precision <- confusion_matrix[2, 2] / sum(confusion_matrix[2, ])
+# Recall (Sensitivity or True Positive Rate)
+recall <- confusion_matrix[2, 2] / sum(confusion_matrix[, 2])
+# F1-Score
+f1_score <- 2 * (precision * recall) / (precision + recall)
+# Print Metrics
+cat("\nModel Evaluation Metrics:\n")
+Model Evaluation Metrics:
+cat("Accuracy:", round(accuracy, 3), "\n")
+Accuracy: 0.857 
+cat("Precision:", round(precision, 3), "\n")
+Precision: 0.667 
+cat("Recall:", round(recall, 3), "\n")
+Recall: 1 
+cat("F1-Score:", round(f1_score, 3), "\n")
+F1-Score: 0.8 
+# Step 8: ROC Curve and AUC
+# Install 'pROC' package if needed
+if (!require("pROC")) install.packages("pROC", dependencies = TRUE)
+library(pROC)
+roc_curve <- roc(actual, predicted_probabilities)
+Setting levels: control = 0, case = 1
+Setting direction: controls < cases
+auc_value <- auc(roc_curve)
+cat("\nAUC (Area Under Curve):", round(auc_value, 3), "\n")
+AUC (Area Under Curve): 1 
+# Plot the ROC curve
+plot(roc_curve, main = "ROC Curve", col = "blue", lwd = 2)
+
+
+Model Summary:
+o Intercept (442.762): The log-odds of being a high CLV customer when all 
+predictors are set to 0. This value is extremely large, which suggests potential 
+numerical instability or issues with the model fitting process.
+o hp (-1.471): For every additional unit of horsepower, the odds of being a highvalue customer decrease, but this variable is not statistically significant (pvalue of 1.000) and may not be reliable.
+o wt (-106.728): For each unit increase in weight, the odds of being a high-value 
+customer decrease significantly. However, the very large standard error and pvalue of 1.000 indicate that it is not statistically significant.
+o cyl (13.906): The number of cylinders has a positive effect on the odds of 
+being a high-value customer, but with a p-value of 1.000, it is not significant.
+2. Confusion Matrix:
+o True Negatives (4): The number of low-value customers correctly identified.
+o True Positives (2): The number of high-value customers correctly identified.
+o False Negatives (1): One high-value customer misclassified as low-value.
+o False Positives (1): One low-value customer misclassified as high-value.
+3. Accuracy and Metrics:
+o Accuracy (85.7%): The overall proportion of correct classifications. While 
+this appears high, it may be misleading due to potential overfitting or data 
+issues.
+o Precision (66.7%): Of the instances predicted as high-value, 66.7% were 
+actually high-value. This indicates room for improvement in reducing false 
+positives.
+o Recall (100%): The model correctly identified all actual high-value 
+customers, but this may be inflated due to overfitting or data-specific factors.
+o F1-Score (80%): The harmonic mean of precision and recall. Indicates a 
+decent balance between the two metrics, but should be interpreted with caution 
+given the model's issues.
+4. AUC and ROC Curve:
+o AUC (1.0): The model has perfect discriminatory power, which is unusual and 
+may indicate overfitting or data quality issues.
+
+

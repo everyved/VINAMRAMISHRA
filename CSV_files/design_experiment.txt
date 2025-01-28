@@ -1,0 +1,108 @@
+a. Learn about experimental design and its application in marketing.
+b. Design experiments using examples from marketing scenarios.
+c. Implement randomization and sample splitting techniques.
+d. Conduct the experiments and collect relevant data for analysis.
+Theory:
+Experimental design in marketing involves creating and implementing experiments to 
+understand consumer behavior, test marketing strategies, and evaluate the impact of 
+various factors on consumer decisions. It helps marketers make informed decisions by 
+systematically testing hypotheses and analyzing the results.
+Understanding Experimental Design in Marketing
+Controlled Experiments: Splitting a sample into control and treatment groups to assess the 
+impact of a marketing intervention.
+A/B Testing: Comparing two variants (A and B) to determine which performs better in 
+achieving campaign objectives.
+Randomization: Assigning subjects randomly to control and treatment groups to minimize 
+bias and ensure groups are comparable.
+
+
+
+
+
+
+# Load necessary libraries
+library(ggplot2)  # For data visualization
+
+# Step 1: Load the dataset
+superstore_data <- read.csv(file.choose())  # Load the dataset via file chooser
+View(superstore_data)  # Display the dataset in a tabular view
+
+# Step 2: Understand the dataset structure
+colnames(superstore_data)  # Display column names to understand available variables
+# Example columns:
+# "ID", "Year_Birth", "Education", "Marital_Status", "Income", "Recency",
+# "NumStorePurchases", "NumWebPurchases", "NumWebVisitsMonth"
+
+# Step 3: Select relevant columns for the experiment
+# Focus on columns related to customer behavior and engagement
+selected_data <- superstore_data[, c("ID", "Marital_Status", "Year_Birth", "Education",
+                                     "Dt_Customer", "Recency", "NumStorePurchases",
+                                     "NumWebPurchases", "NumWebVisitsMonth")]
+
+# Remove duplicate rows
+selected_data <- unique(selected_data)
+
+# Step 4: Design the experiment
+# Scenario: Assess the impact of 'Recency', 'NumStorePurchases', and 'NumWebPurchases'
+# on 'NumWebVisitsMonth' (customer engagement).
+
+# Step 4.1: Randomize treatment and control groups
+set.seed(123)  # Set seed for reproducibility
+selected_data$treatment_group <- ifelse(runif(nrow(selected_data)) <= 0.7, "Treatment", "Control")
+
+# Step 4.2: Split into treatment and control groups
+treatment_data <- selected_data[selected_data$treatment_group == "Treatment", ]
+control_data <- selected_data[selected_data$treatment_group == "Control", ]
+
+# Step 5: Implement Simple Random Sampling
+# Define the size of the sample (70% of the data)
+sample_size <- floor(0.7 * nrow(selected_data))
+cat("Sample size:", sample_size, "\n")  # Print the sample size (e.g., 1568 rows)
+
+# Randomly select a sample from the dataset
+sampled_data <- selected_data[sample(1:nrow(selected_data), size = sample_size, replace = FALSE), ]
+
+# View the sampled data and its dimensions
+View(sampled_data)
+cat("Dimensions of sampled data:", dim(sampled_data), "\n")  # Check number of rows and columns
+
+# Step 6: Perform exploratory data analysis (EDA)
+# Visualize distributions of key variables
+ggplot(selected_data, aes(x = Recency)) +
+  geom_histogram(binwidth = 10, fill = "blue", color = "white") +
+  ggtitle("Distribution of Recency") +
+  xlab("Recency (days)") +
+  ylab("Frequency") +
+  theme_minimal()
+
+# Step 7: Analyze the impact of variables on customer engagement
+# Fit a linear regression model
+model <- lm(NumWebVisitsMonth ~ Recency + NumStorePurchases + NumWebPurchases, data = selected_data)
+
+# Display model summary
+summary(model)
+
+# Step 8: Compare treatment and control groups
+# Calculate average customer engagement in each group
+treatment_avg <- mean(treatment_data$NumWebVisitsMonth, na.rm = TRUE)
+control_avg <- mean(control_data$NumWebVisitsMonth, na.rm = TRUE)
+
+cat("Average NumWebVisitsMonth (Treatment Group):", treatment_avg, "\n")
+cat("Average NumWebVisitsMonth (Control Group):", control_avg, "\n")
+
+# Visualize comparison between treatment and control groups
+group_means <- data.frame(
+  Group = c("Treatment", "Control"),
+  Avg_NumWebVisitsMonth = c(treatment_avg, control_avg)
+)
+
+ggplot(group_means, aes(x = Group, y = Avg_NumWebVisitsMonth, fill = Group)) +
+  geom_bar(stat = "identity", color = "black") +
+  ggtitle("Comparison of Customer Engagement by Group") +
+  xlab("Group") +
+  ylab("Average NumWebVisitsMonth") +
+  theme_minimal()
+
+# Step 9: Save the processed data for future use
+write.csv(selected_data, "processed_superstore_data.csv", row.names = FALSE)
+cat("Processed data saved to 'processed_superstore_data.csv'.\n")

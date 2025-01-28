@@ -1,0 +1,58 @@
+# Load required libraries
+library(dplyr)   # For data manipulation
+library(ggplot2) # For data visualization
+
+# Step 1: Simulate A/B Testing Data
+set.seed(123)  # Set seed for reproducibility
+n <- 1000  # Total number of participants
+group <- sample(c("A", "B"), n, replace = TRUE)  # Randomly assign participants to Group A or B
+conversion <- ifelse(
+  group == "A",
+  rbinom(n, 1, 0.12),  # Conversion rate for Group A: 12%
+  rbinom(n, 1, 0.15)   # Conversion rate for Group B: 15%
+)
+
+# Create a data frame with the simulated data
+ab_data <- data.frame(Group = group, Conversion = conversion)
+
+# View the first few rows of the dataset
+head(ab_data)
+
+# Step 2: Summarize Conversion Rates by Group
+# Calculate the total number of participants, number of conversions, and conversion rates for each group
+summary_table <- ab_data %>%
+  group_by(Group) %>%
+  summarise(
+    Total_Customers = n(),
+    Conversions = sum(Conversion),
+    Conversion_Rate = mean(Conversion)
+  )
+
+# Print the summary table
+print(summary_table)
+
+# Step 3: Visualize Conversion Rates
+# Create a bar plot to compare conversion rates between Group A and Group B
+ggplot(summary_table, aes(x = Group, y = Conversion_Rate, fill = Group)) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.5) +
+  labs(title = "Conversion Rates by Group", x = "Group", y = "Conversion Rate") +
+  theme_minimal()
+
+# Step 4: Perform Statistical Test
+# Null Hypothesis (H0): Conversion rates for Group A and Group B are equal
+# Alternative Hypothesis (H1): Conversion rates for Group A and Group B are not equal
+ab_test <- prop.test(
+  x = summary_table$Conversions,       # Number of conversions in each group
+  n = summary_table$Total_Customers,  # Total number of customers in each group
+  alternative = "two.sided"            # Two-tailed test
+)
+
+# Print the test results
+print(ab_test)
+
+# Step 5: Interpret the Results
+if (ab_test$p.value < 0.05) {
+  print("Reject the null hypothesis: There is a significant difference between the conversion rates of Group A and Group B.")
+} else {
+  print("Fail to reject the null hypothesis: No significant difference between the conversion rates of Group A and Group B.")
+}

@@ -1,0 +1,44 @@
+library(ggplot2)
+
+car_data <- mtcars  # Load the mtcars dataset
+
+# Create a histogram for the 'mpg' column
+ggplot(data = car_data, aes(x = mpg)) +
+  geom_histogram(binwidth = 5, fill = "lightblue", color = "black") +
+  labs(title = "Histogram of MPG", x = "Miles Per Gallon", y = "Count")
+
+
+ggplot(data = car_data, aes(x = mpg)) +
+  geom_histogram(binwidth = 5, fill = "green", color = "black") +
+  labs(title = "Histogram of MPG", x = "Miles Per Gallon", y = "Count")
+
+
+
+ggplot(data = car_data, aes(x = wt, y = mpg)) +
+  geom_point(color = "blue", size = 3) +
+  labs(title = "Scatter Plot of MPG vs Weight", x = "Weight (1000 lbs)", y = "Miles Per Gallon")
+
+
+ggplot(data = car_data, aes(x = wt, y = mpg)) +
+  geom_line(color = "red", size = 1) +
+  labs(title = "Line Plot of MPG vs Weight", x = "Weight (1000 lbs)", y = "Miles Per Gallon")
+
+
+
+
+ggplot(data = car_data, aes(x = factor(cyl))) +
+  geom_bar(fill = "orange", color = "black") +
+  labs(title = "Bar Chart of Cylinders", x = "Number of Cylinders", y = "Count")
+
+
+
+ggplot(data = car_data, aes(x = factor(cyl), y = mpg)) +
+  geom_boxplot(fill = "lightblue", color = "black") +
+  labs(title = "Box Plot of MPG by Cylinders", x = "Number of Cylinders", y = "Miles Per Gallon")
+
+
+
+
+
+
+

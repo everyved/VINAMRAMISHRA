@@ -1,0 +1,104 @@
+Step-by-Step Process
+Prepare the Transactional Dataset:
+
+Simulate or use actual transactional data with columns for CustomerID, Date, and Amount.
+Calculate RFM Metrics:
+
+Recency: How recently a customer made a purchase (e.g., days since last transaction).
+Frequency: How often a customer made purchases during a given period.
+Monetary: Total spend by a customer during the given period.
+Create RFM Scores:
+
+Assign scores to each metric based on quantiles (1 = low, 5 = high).
+Combine these scores into an RFM Score.
+Segment Customers:
+
+Use RFM scores to classify customers into segments like "Champions," "At Risk," or "Loyal Customers."
+Visualize Segments:
+
+Use scatter plots or bar charts to display the segments.
+Insights and Marketing Actions:
+
+Summarize segment characteristics and recommend marketing strategies for each group.
+
+
+
+
+# Load required libraries
+library(dplyr)
+library(ggplot2)
+
+# Step 1: Simulate Transactional Data
+set.seed(123)  # For reproducibility
+transactions <- data.frame(
+  CustomerID = sample(1:100, 500, replace = TRUE),  # Random customer IDs
+  Date = sample(seq(as.Date('2023-01-01'), as.Date('2023-12-31'), by = "day"), 500, replace = TRUE),  # Random dates
+  Amount = runif(500, 10, 500)  # Random purchase amounts
+)
+
+# View the dataset
+head(transactions)
+
+# Step 2: Calculate RFM Metrics
+transactions$Date <- as.Date(transactions$Date)  # Ensure the date column is in Date format
+analysis_date <- as.Date('2024-01-01')  # Set the analysis date (e.g., today)
+
+# Group by CustomerID and calculate Recency, Frequency, and Monetary
+rfm <- transactions %>%
+  group_by(CustomerID) %>%
+  summarise(
+    Recency = as.numeric(analysis_date - max(Date)),  # Days since last purchase
+    Frequency = n(),                                 # Number of transactions
+    Monetary = sum(Amount)                           # Total spend
+  )
+
+# View RFM table
+head(rfm)
+
+# Step 3: Create RFM Scores
+# Divide each metric into 5 quantiles (1 = low, 5 = high)
+rfm <- rfm %>%
+  mutate(
+    Recency_Score = ntile(-Recency, 5),  # Use -Recency so recent purchases get higher scores
+    Frequency_Score = ntile(Frequency, 5),
+    Monetary_Score = ntile(Monetary, 5),
+    RFM_Score = paste0(Recency_Score, Frequency_Score, Monetary_Score)  # Combine scores
+  )
+
+# View RFM scores
+head(rfm)
+
+# Step 4: Segment Customers
+# Define customer segments based on RFM scores
+rfm <- rfm %>%
+  mutate(
+    Segment = case_when(
+      Recency_Score == 5 & Frequency_Score == 5 & Monetary_Score == 5 ~ "Champions",
+      Recency_Score >= 4 & Frequency_Score >= 4 ~ "Loyal Customers",
+      Recency_Score <= 2 & Frequency_Score <= 2 & Monetary_Score <= 2 ~ "At Risk",
+      TRUE ~ "Others"
+    )
+  )
+
+# View segment distribution
+table(rfm$Segment)
+
+# Step 5: Visualize Customer Segments
+ggplot(rfm, aes(x = Recency, y = Monetary, color = Segment)) +
+  geom_point() +
+  labs(title = "Customer Segments Based on RFM", x = "Recency (days)", y = "Monetary Value") +
+  theme_minimal()
+
+# Step 6: Insights and Marketing Actions
+# Summarize segment characteristics
+segment_summary <- rfm %>%
+  group_by(Segment) %>%
+  summarise(
+    Avg_Recency = mean(Recency),
+    Avg_Frequency = mean(Frequency),
+    Avg_Monetary = mean(Monetary),
+    Customer_Count = n()
+  )
+
+# View the segment summary
+print(segment_summary)
