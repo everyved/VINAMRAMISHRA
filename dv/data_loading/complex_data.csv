@@ -1,0 +1,6 @@
+Name,Age,City,Salary,Department,Tax
+Alice,25.0,New York,70000.0,HR,14000.0
+Bob,30.0,Los Angeles,80000.0,Finance,16000.0
+Charlie,35.0,Chicago,120000.0,Engineering,24000.0
+David,40.0,Houston,110000.0,Management,22000.0
+Eva,32.5,Phoenix,95000.0,HR,19000.0

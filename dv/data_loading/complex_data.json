@@ -1,0 +1,5 @@
+{"Name":"Alice","Age":25.0,"City":"New York","Salary":70000.0,"Department":"HR","Tax":14000.0}
+{"Name":"Bob","Age":30.0,"City":"Los Angeles","Salary":80000.0,"Department":"Finance","Tax":16000.0}
+{"Name":"Charlie","Age":35.0,"City":"Chicago","Salary":120000.0,"Department":"Engineering","Tax":24000.0}
+{"Name":"David","Age":40.0,"City":"Houston","Salary":110000.0,"Department":"Management","Tax":22000.0}
+{"Name":"Eva","Age":32.5,"City":"Phoenix","Salary":95000.0,"Department":"HR","Tax":19000.0}
